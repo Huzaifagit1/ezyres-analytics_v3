@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
   ChartEvent,
+  ActiveElement,
 } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -90,9 +91,9 @@ export default function AnalyticsDonutCharts() {
         }
       },
       // Move onHover here:
-      onHover: (event: ChartEvent, activeElements: any[]) => {
-        (event.native as MouseEvent).target!.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-      }
+     onHover: (event: ChartEvent, activeElements: ActiveElement[]) => {
+  (event.native as MouseEvent).target!.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+}
     }
   },
   animation: {
@@ -159,95 +160,105 @@ const charts = [
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {charts.map((chart, index) => {
-        const chartData = {
-          labels: (chart.data as any[]).map(chart.getLabel),
-          datasets: [{
-            data: (chart.data as any[]).map(chart.getValue),
-            backgroundColor: chart.colors.slice(0, chart.data.length),
-            borderWidth: 2,
-            borderColor: '#ffffff',
-            hoverBorderWidth: 3,
-            hoverOffset: 8,
-          }]
-        };
+     {charts.map((chart) => {
+  // Type guard for chart data
+  let chartItems: AvgArvItem[] | SuccessRateItem[] | AccessBreakdownItem[] = [];
+  if (chart.id === 'avg-arv') {
+    chartItems = chart.data as AvgArvItem[];
+  } else if (chart.id === 'success-rate') {
+    chartItems = chart.data as SuccessRateItem[];
+  } else {
+    chartItems = chart.data as AccessBreakdownItem[];
+  }
 
-        const totalValue = chart.data.reduce((sum, item) => sum + chart.getValue(item), 0);
-        const hasData = chart.data.length > 0;
+  const chartData = {
+    labels: chartItems.map(chart.getLabel),
+    datasets: [{
+      data: chartItems.map(chart.getValue),
+      backgroundColor: chart.colors.slice(0, chartItems.length),
+      borderWidth: 2,
+      borderColor: '#ffffff',
+      hoverBorderWidth: 3,
+      hoverOffset: 8,
+    }]
+  };
 
-        return (
-          <div key={chart.id} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-all duration-300">
-            {/* Header */}
-            <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h3 className="font-bold text-white text-sm">{chart.title}</h3>
-                  </div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                </div>
+  const totalValue = chartItems.reduce((sum, item) => sum + chart.getValue(item), 0);
+  const hasData = chartItems.length > 0;
+
+  return (
+    <div key={chart.id} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-all duration-300">
+      {/* Header */}
+      <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <h3 className="font-bold text-white text-sm">{chart.title}</h3>
+            </div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart Content */}
+      <div className="p-6">
+        {hasData ? (
+          <>
+            {/* Chart with Center Value */}
+            <div className="relative h-48 mb-4">
+              <Doughnut data={chartData} options={chartOptions} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs text-slate-500 font-medium">Total</span>
+                <span className="text-lg font-bold text-slate-800">
+                  {chart.formatValue(totalValue)}
+                </span>
               </div>
             </div>
 
-            {/* Chart Content */}
-            <div className="p-6">
-              {hasData ? (
-                <>
-                  {/* Chart with Center Value */}
-                  <div className="relative h-48 mb-4">
-                    <Doughnut data={chartData} options={chartOptions} />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xs text-slate-500 font-medium">Total</span>
-                      <span className="text-lg font-bold text-slate-800">
-                        {chart.formatValue(totalValue)}
+            {/* Legend */}
+            <div className="space-y-2">
+              {chartItems.map((item, idx) => {
+                const percentage = ((chart.getValue(item) / totalValue) * 100).toFixed(1);
+                return (
+                  <div key={idx} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: chart.colors[idx] }}
+                      ></div>
+                      <span className="text-slate-600 font-medium truncate">
+                        {chart.getLabel(item)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-slate-500 font-medium">
+                        {percentage}%
+                      </span>
+                      <span className="text-slate-800 font-semibold">
+                        {chart.formatValue(chart.getValue(item))}
                       </span>
                     </div>
                   </div>
-
-                  {/* Legend */}
-                  <div className="space-y-2">
-                    {chart.data.map((item, idx) => {
-                      const percentage = ((chart.getValue(item) / totalValue) * 100).toFixed(1);
-                      return (
-                        <div key={idx} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: chart.colors[idx] }}
-                            ></div>
-                            <span className="text-slate-600 font-medium truncate">
-                              {chart.getLabel(item)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 ml-2">
-                            <span className="text-slate-500 font-medium">
-                              {percentage}%
-                            </span>
-                            <span className="text-slate-800 font-semibold">
-                              {chart.formatValue(chart.getValue(item))}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <p className="text-slate-500 text-sm">No data available</p>
-                </div>
-              )}
+                );
+              })}
             </div>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <p className="text-slate-500 text-sm">No data available</p>
           </div>
-        );
-      })}
+        )}
+      </div>
+    </div>
+  );
+})}
     </div>
   );
 }
