@@ -3,7 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
 }
+
 
 @theme inline {
   --color-background: var(--background);
@@ -20,7 +22,23 @@
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at center, rgba(209, 250, 229, 0.8) 0%, rgba(255, 255, 255, 1) 100%) !important;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.pulse {
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
 }
