@@ -20,8 +20,8 @@ const navSections = [
         href: '/reports',
         icon: (
          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2a2 2 0 002-2c0-1.1-.9-2-2-2zm6.39 3.56l1.42 1.42-2.12 2.12-1.42-1.42A6.969 6.969 0 0112 18c-1.58 0-3.03-.53-4.17-1.42l-1.42 1.42-2.12-2.12 1.42-1.42A6.969 6.969 0 016 12c0-1.58.53-3.03 1.42-4.17L6 6.39 8.12 4.27l1.42 1.42A6.969 6.969 0 0112 6c1.58 0 3.03.53 4.17 1.42l1.42-1.42 2.12 2.12-1.42 1.42A6.969 6.969 0 0118 12z" />
-      //     </svg>
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2a2 2 0 002-2c0-1.1-.9-2-2-2zm6.39 3.56l1.42 1.42-2.12 2.12-1.42-1.42A6.969 6.969 0 0112 18c-1.58 0-3.03-.53-4.17-1.42l-1.42 1.42-2.12-2.12 1.42-1.42A6.969 6.969 0 016 12c0-1.58.53-3.03 1.42-4.17L6 6.39 8.12 4.27l1.42 1.42A6.969 6.969 0 0112 6c1.58 0 3.03.53 4.17 1.42l1.42-1.42 2.12 2.12-1.42 1.42A6.969 6.969 0 0118 12z" />
+          </svg>
 
         )
       },
@@ -69,7 +69,6 @@ export default function Navbar() {
       <nav className="flex-1 py-4 overflow-y-auto">
         {navSections.map((section, sectionIndex) => (
           <div key={sectionIndex} className="mb-6">
-            {/* Section Header */}
             {section.title && isHovered && (
               <div className="px-4 mb-3">
                 <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
