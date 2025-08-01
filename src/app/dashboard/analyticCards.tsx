@@ -91,9 +91,7 @@ export default function AnalyticsDonutCharts() {
         }
       },
       // Move onHover here:
-     onHover: (event: ChartEvent, activeElements: ActiveElement[]) => {
-  (event.native as MouseEvent).target!.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-}
+  
     }
   },
   animation: {
