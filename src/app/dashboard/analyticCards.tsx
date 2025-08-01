@@ -63,11 +63,10 @@ export default function AnalyticsDonutCharts() {
   bodyFont: { size: 13, weight: '600' },
   padding: 12,
   callbacks: {
-    label: function (context: any) {
-      const chart = context.chart;
+label: function (context: import("chart.js").TooltipItem<'doughnut'>) {      const chart = context.chart;
       const dataset = chart.data.datasets[context.datasetIndex];
-      const total = dataset.data.reduce((sum, value) => sum + value, 0);
-      const value = context.parsed;
+const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
+      const value = context.parsed;  
       const percentage = ((value / total) * 100).toFixed(0); // Rounded to whole number
       return `${context.label}: ${percentage}%`;
     },
