@@ -6,14 +6,28 @@ import {
   ArcElement,
   Tooltip,
   Legend,
+  ChartEvent,
 } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+interface AvgArvItem {
+  avg_arv: string;
+  type: string;
+}
 
+interface SuccessRateItem {
+  success_rate_percent: string;
+  type: string;
+}
+
+interface AccessBreakdownItem {
+  total: string;
+  access: string;
+}
 export default function AnalyticsDonutCharts() {
-  const [avgData, setAvgData] = useState([]);
-  const [successData, setSuccessData] = useState([]);
-  const [accessData, setAccessData] = useState([]);
+  const [avgData, setAvgData] = useState<AvgArvItem[]>([]);
+  const [successData, setSuccessData] = useState<SuccessRateItem[]>([]);
+  const [accessData, setAccessData] = useState<AccessBreakdownItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,81 +59,81 @@ export default function AnalyticsDonutCharts() {
   }, []);
 
   const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '65%',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-  enabled: true,
-  backgroundColor: 'rgba(30, 41, 59, 0.95)',
-  titleColor: '#f8fafc',
-  bodyColor: '#e2e8f0',
-  borderColor: 'rgba(148, 163, 184, 0.3)',
-  borderWidth: 1,
-  cornerRadius: 12,
-  displayColors: true,
-  titleFont: { size: 13, weight: '600' },
-  bodyFont: { size: 13, weight: '600' },
-  padding: 12,
-  callbacks: {
-label: function (context: import("chart.js").TooltipItem<'doughnut'>) {      const chart = context.chart;
-      const dataset = chart.data.datasets[context.datasetIndex];
-const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
-      const value = context.parsed;  
-      const percentage = ((value / total) * 100).toFixed(0); // Rounded to whole number
-      return `${context.label}: ${percentage}%`;
-    },
-    title: function () {
-      return ""; // Remove the title line so only label: % shows
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: '65%',
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: true,
+      backgroundColor: 'rgba(30, 41, 59, 0.95)',
+      titleColor: '#f8fafc',
+      bodyColor: '#e2e8f0',
+      borderColor: 'rgba(148, 163, 184, 0.3)',
+      borderWidth: 1,
+      cornerRadius: 12,
+      displayColors: true,
+      titleFont: { size: 13, weight: '600' },
+      bodyFont: { size: 13, weight: '600' },
+      padding: 12,
+      callbacks: {
+        label: function (context: import("chart.js").TooltipItem<'doughnut'>) {
+          const chart = context.chart;
+          const dataset = chart.data.datasets[context.datasetIndex];
+          const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
+          const value = context.parsed;
+          const percentage = ((value / total) * 100).toFixed(0);
+          return `${context.label}: ${percentage}%`;
+        },
+        title: function () {
+          return "";
+        }
+      },
+      // Move onHover here:
+      onHover: (event: ChartEvent, activeElements: any[]) => {
+        (event.native as MouseEvent).target!.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+      }
     }
+  },
+  animation: {
+    animateRotate: true,
+    duration: 1000,
   }
-}
-
-    },
-    animation: {
-      animateRotate: true,
-      duration: 1000,
-    },
-    onHover: (event, activeElements) => {
-      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-    }
-  };
+};
 
   // Chart configurations with modern gradients
-  const charts = [
-    {
-      id: 'avg-arv',
-      title: 'Average ARV',
-      
-      data: avgData,
-      getValue: (item) => parseFloat(item.avg_arv),
-      getLabel: (item) => item.type,
-      formatValue: (value) => `$${value.toLocaleString()}`,
-      colors: ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981'],
-      gradients: ['from-indigo-500 to-purple-600', 'from-purple-500 to-pink-500']
-    },
-    {
-      id: 'success-rate',
-      title: 'Success Rate',
-      data: successData,
-      getValue: (item) => parseFloat(item.success_rate_percent),
-      getLabel: (item) => item.type,
-      formatValue: (value) => `${value}%`,
-      colors: ['#22c55e', '#ef4444', '#f59e0b', '#06b6d4'],
-      gradients: ['from-green-500 to-emerald-500', 'from-red-500 to-rose-500']
-    },
-    {
-      id: 'access-breakdown',
-      title: 'Access Types',
-      data: accessData,
-      getValue: (item) => parseFloat(item.total),
-      getLabel: (item) => item.access,
-      formatValue: (value) => value.toLocaleString(),
-      colors: ['#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e'],
-      gradients: ['from-amber-500 to-orange-500', 'from-cyan-500 to-blue-500']
-    }
-  ];
+const charts = [
+  {
+    id: 'avg-arv',
+    title: 'Average ARV',
+    data: avgData,
+    getValue: (item: AvgArvItem) => parseFloat(item.avg_arv),
+    getLabel: (item: AvgArvItem) => item.type,
+    formatValue: (value: number) => `$${value.toLocaleString()}`,
+    colors: ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981'],
+    gradients: ['from-indigo-500 to-purple-600', 'from-purple-500 to-pink-500']
+  },
+  {
+    id: 'success-rate',
+    title: 'Success Rate',
+    data: successData,
+    getValue: (item: SuccessRateItem) => parseFloat(item.success_rate_percent),
+    getLabel: (item: SuccessRateItem) => item.type,
+    formatValue: (value: number) => `${value}%`,
+    colors: ['#22c55e', '#ef4444', '#f59e0b', '#06b6d4'],
+    gradients: ['from-green-500 to-emerald-500', 'from-red-500 to-rose-500']
+  },
+  {
+    id: 'access-breakdown',
+    title: 'Access Types',
+    data: accessData,
+    getValue: (item: AccessBreakdownItem) => parseFloat(item.total),
+    getLabel: (item: AccessBreakdownItem) => item.access,
+    formatValue: (value: number) => value.toLocaleString(),
+    colors: ['#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e'],
+    gradients: ['from-amber-500 to-orange-500', 'from-cyan-500 to-blue-500']
+  }
+];
 
   if (loading) {
     return (
@@ -147,9 +161,9 @@ const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {charts.map((chart, index) => {
         const chartData = {
-          labels: chart.data.map(chart.getLabel),
+          labels: (chart.data as any[]).map(chart.getLabel),
           datasets: [{
-            data: chart.data.map(chart.getValue),
+            data: (chart.data as any[]).map(chart.getValue),
             backgroundColor: chart.colors.slice(0, chart.data.length),
             borderWidth: 2,
             borderColor: '#ffffff',
@@ -167,7 +181,6 @@ const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
             <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{chart.icon}</span>
                   <div>
                     <h3 className="font-bold text-white text-sm">{chart.title}</h3>
                   </div>
