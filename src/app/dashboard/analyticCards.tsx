@@ -6,11 +6,11 @@ import {
   ArcElement,
   Tooltip,
   Legend,
-  ChartEvent,
-  ActiveElement,
+  ChartOptions
 } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+
 interface AvgArvItem {
   avg_arv: string;
   type: string;
@@ -25,6 +25,9 @@ interface AccessBreakdownItem {
   total: string;
   access: string;
 }
+
+type ChartItem = AvgArvItem | SuccessRateItem | AccessBreakdownItem;
+
 export default function AnalyticsDonutCharts() {
   const [avgData, setAvgData] = useState<AvgArvItem[]>([]);
   const [successData, setSuccessData] = useState<SuccessRateItem[]>([]);
@@ -59,7 +62,7 @@ export default function AnalyticsDonutCharts() {
     fetchData();
   }, []);
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<"doughnut"> = {
   responsive: true,
   maintainAspectRatio: false,
   cutout: '65%',
@@ -74,11 +77,11 @@ export default function AnalyticsDonutCharts() {
       borderWidth: 1,
       cornerRadius: 12,
       displayColors: true,
-      titleFont: { size: 13, weight: '600' },
-      bodyFont: { size: 13, weight: '600' },
+      titleFont: { size: 13, },
+      bodyFont: { size: 13,  },
       padding: 12,
       callbacks: {
-        label: function (context: import("chart.js").TooltipItem<'doughnut'>) {
+        label: function (context) {
           const chart = context.chart;
           const dataset = chart.data.datasets[context.datasetIndex];
           const total = (dataset.data as number[]).reduce((sum, value) => sum + value, 0);
@@ -89,9 +92,7 @@ export default function AnalyticsDonutCharts() {
         title: function () {
           return "";
         }
-      },
-      // Move onHover here:
-  
+      }
     }
   },
   animation: {
@@ -100,39 +101,36 @@ export default function AnalyticsDonutCharts() {
   }
 };
 
-  // Chart configurations with modern gradients
-const charts = [
-  {
-    id: 'avg-arv',
-    title: 'Average ARV',
-    data: avgData,
-    getValue: (item: AvgArvItem) => parseFloat(item.avg_arv),
-    getLabel: (item: AvgArvItem) => item.type,
-    formatValue: (value: number) => `$${value.toLocaleString()}`,
-    colors: ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981'],
-    gradients: ['from-indigo-500 to-purple-600', 'from-purple-500 to-pink-500']
-  },
-  {
-    id: 'success-rate',
-    title: 'Success Rate',
-    data: successData,
-    getValue: (item: SuccessRateItem) => parseFloat(item.success_rate_percent),
-    getLabel: (item: SuccessRateItem) => item.type,
-    formatValue: (value: number) => `${value}%`,
-    colors: ['#22c55e', '#ef4444', '#f59e0b', '#06b6d4'],
-    gradients: ['from-green-500 to-emerald-500', 'from-red-500 to-rose-500']
-  },
-  {
-    id: 'access-breakdown',
-    title: 'Access Types',
-    data: accessData,
-    getValue: (item: AccessBreakdownItem) => parseFloat(item.total),
-    getLabel: (item: AccessBreakdownItem) => item.access,
-    formatValue: (value: number) => value.toLocaleString(),
-    colors: ['#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e'],
-    gradients: ['from-amber-500 to-orange-500', 'from-cyan-500 to-blue-500']
-  }
-];
+  // Chart configurations
+  const charts = [
+    {
+      id: 'avg-arv',
+      title: 'Average ARV',
+      data: avgData,
+      getValue: (item: AvgArvItem) => parseFloat(item.avg_arv),
+      getLabel: (item: AvgArvItem) => item.type,
+      formatValue: (value: number) => `$${value.toLocaleString()}`,
+      colors: ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981']
+    },
+    {
+      id: 'success-rate',
+      title: 'Success Rate',
+      data: successData,
+      getValue: (item: SuccessRateItem) => parseFloat(item.success_rate_percent),
+      getLabel: (item: SuccessRateItem) => item.type,
+      formatValue: (value: number) => `${value}%`,
+      colors: ['#22c55e', '#ef4444', '#f59e0b', '#06b6d4']
+    },
+    {
+      id: 'access-breakdown',
+      title: 'Access Types',
+      data: accessData,
+      getValue: (item: AccessBreakdownItem) => parseFloat(item.total),
+      getLabel: (item: AccessBreakdownItem) => item.access,
+      formatValue: (value: number) => value.toLocaleString(),
+      colors: ['#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e']
+    }
+  ];
 
   if (loading) {
     return (
@@ -158,119 +156,114 @@ const charts = [
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-     {charts.map((chart) => {
-  // Type guard for chart data
-  let chartItems: AvgArvItem[] | SuccessRateItem[] | AccessBreakdownItem[] = [];
-  if (chart.id === 'avg-arv') {
-    chartItems = chart.data as AvgArvItem[];
-  } else if (chart.id === 'success-rate') {
-    chartItems = chart.data as SuccessRateItem[];
-  } else {
-    chartItems = chart.data as AccessBreakdownItem[];
-  }
+      {charts.map((chart) => {
+        type ChartDataType = typeof chart extends { id: 'avg-arv' }
+          ? AvgArvItem
+          : typeof chart extends { id: 'success-rate' }
+          ? SuccessRateItem
+          : AccessBreakdownItem;
 
-  let labels: string[] = [];
-let data: number[] = [];
+        let chartItems: ChartItem[] = chart.data;
 
-if (chart.id === 'avg-arv') {
-  labels = (chartItems as AvgArvItem[]).map(item => (chart.getLabel as (item: AvgArvItem) => string)(item));
-  data = (chartItems as AvgArvItem[]).map(item => (chart.getValue as (item: AvgArvItem) => number)(item));
-} else if (chart.id === 'success-rate') {
-  labels = (chartItems as SuccessRateItem[]).map(item => (chart.getLabel as (item: SuccessRateItem) => string)(item));
-  data = (chartItems as SuccessRateItem[]).map(item => (chart.getValue as (item: SuccessRateItem) => number)(item));
-} else {
-  labels = (chartItems as AccessBreakdownItem[]).map(item => (chart.getLabel as (item: AccessBreakdownItem) => string)(item));
-  data = (chartItems as AccessBreakdownItem[]).map(item => (chart.getValue as (item: AccessBreakdownItem) => number)(item));
-}
+        const labels = chartItems.map((item) => {
+          if ('avg_arv' in item) return (chart.getLabel as (i: AvgArvItem) => string)(item);
+          if ('success_rate_percent' in item) return (chart.getLabel as (i: SuccessRateItem) => string)(item);
+          return (chart.getLabel as (i: AccessBreakdownItem) => string)(item);
+        });
 
-const chartData = {
-  labels,
-  datasets: [{
-    data,
-    backgroundColor: chart.colors.slice(0, chartItems.length),
-    borderWidth: 2,
-    borderColor: '#ffffff',
-    hoverBorderWidth: 3,
-    hoverOffset: 8,
-  }]
-};
+        const data = chartItems.map((item) => {
+          if ('avg_arv' in item) return (chart.getValue as (i: AvgArvItem) => number)(item);
+          if ('success_rate_percent' in item) return (chart.getValue as (i: SuccessRateItem) => number)(item);
+          return (chart.getValue as (i: AccessBreakdownItem) => number)(item);
+        });
 
-  const totalValue = chartItems.reduce((sum, item) => sum + chart.getValue(item), 0);
-  const hasData = chartItems.length > 0;
+        const chartData = {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: chart.colors.slice(0, chartItems.length),
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverBorderWidth: 3,
+            hoverOffset: 8,
+          }]
+        };
 
-  return (
-    <div key={chart.id} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-all duration-300">
-      {/* Header */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h3 className="font-bold text-white text-sm">{chart.title}</h3>
-            </div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      </div>
+        const totalValue = data.reduce((sum, val) => sum + val, 0);
+        const hasData = chartItems.length > 0;
 
-      {/* Chart Content */}
-      <div className="p-6">
-        {hasData ? (
-          <>
-            {/* Chart with Center Value */}
-            <div className="relative h-48 mb-4">
-              <Doughnut data={chartData} options={chartOptions} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xs text-slate-500 font-medium">Total</span>
-                <span className="text-lg font-bold text-slate-800">
-                  {chart.formatValue(totalValue)}
-                </span>
+        return (
+          <div key={chart.id} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-all duration-300">
+            <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h3 className="font-bold text-white text-sm">{chart.title}</h3>
+                  </div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
               </div>
             </div>
 
-            {/* Legend */}
-            <div className="space-y-2">
-              {chartItems.map((item, idx) => {
-                const percentage = ((chart.getValue(item) / totalValue) * 100).toFixed(1);
-                return (
-                  <div key={idx} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: chart.colors[idx] }}
-                      ></div>
-                      <span className="text-slate-600 font-medium truncate">
-                        {chart.getLabel(item)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 ml-2">
-                      <span className="text-slate-500 font-medium">
-                        {percentage}%
-                      </span>
-                      <span className="text-slate-800 font-semibold">
-                        {chart.formatValue(chart.getValue(item))}
+            <div className="p-6">
+              {hasData ? (
+                <>
+                  <div className="relative h-48 mb-4">
+                    <Doughnut data={chartData} options={chartOptions} />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-xs text-slate-500 font-medium">Total</span>
+                      <span className="text-lg font-bold text-slate-800">
+                        {chart.formatValue(totalValue)}
                       </span>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="space-y-2">
+                    {chartItems.map((item, idx) => {
+                      const value = data[idx];
+                      const percentage = ((value / totalValue) * 100).toFixed(1);
+                      const label = labels[idx];
+
+                      return (
+                        <div key={idx} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: chart.colors[idx] }}
+                            ></div>
+                            <span className="text-slate-600 font-medium truncate">
+                              {label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 ml-2">
+                            <span className="text-slate-500 font-medium">
+                              {percentage}%
+                            </span>
+                            <span className="text-slate-800 font-semibold">
+                              {chart.formatValue(value)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <p className="text-slate-500 text-sm">No data available</p>
+                </div>
+              )}
             </div>
-          </>
-        ) : (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <p className="text-slate-500 text-sm">No data available</p>
           </div>
-        )}
-      </div>
-    </div>
-  );
-})}
+        );
+      })}
     </div>
   );
 }
