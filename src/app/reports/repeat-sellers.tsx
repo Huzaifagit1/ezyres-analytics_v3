@@ -1,24 +1,40 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartData,
+  ChartOptions,
+} from "chart.js";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+// Define the structure of API data
+interface RepeatSeller {
+  email: string;
+  submission_count: number | string;
+}
+
 export default function RepeatSellersChart() {
-  const [chartData, setChartData] = useState(null);
+  const [chartData, setChartData] = useState<ChartData<"bar"> | null>(null); // ✅ Proper type
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRepeatSellers = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/analytics/repeat-sellers`);
-        const data = await res.json();
+        const data: { success: boolean; data: RepeatSeller[] } = await res.json();
 
         if (data.success) {
           // Sort sellers by submission count and pick top 10
           const sorted = data.data
-            .sort((a, b) => Number(b.submission_count) - Number(a.submission_count))
+            .sort((a: RepeatSeller, b: RepeatSeller) => Number(b.submission_count) - Number(a.submission_count))
             .slice(0, 10);
 
           const emails = sorted.map((s) => s.email);
@@ -48,7 +64,7 @@ export default function RepeatSellersChart() {
     fetchRepeatSellers();
   }, []);
 
-  const options = {
+  const options: ChartOptions<"bar"> = {
     indexAxis: "y", // Horizontal bar chart
     responsive: true,
     maintainAspectRatio: false,
@@ -74,7 +90,14 @@ export default function RepeatSellersChart() {
         ticks: {
           color: "#334155",
           font: { size: 11 },
-          callback: (value) => chartData.labels[value].split("@")[0], // Show prefix of email only
+          callback: (value) => {
+            // ✅ Safely access labels when they exist
+            if (chartData && chartData.labels) {
+              const label = chartData.labels[Number(value)] as string;
+              return label.split("@")[0];
+            }
+            return value;
+          },
         },
       },
     },

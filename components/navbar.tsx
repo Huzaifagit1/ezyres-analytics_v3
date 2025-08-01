@@ -90,7 +90,7 @@ export default function Navbar() {
                       ? ''
                       : 'text-gray-300 hover:text-white hover:bg-slate-700'
                   }`}
-                >
+                >  
                   <div className="flex-shrink-0">
                     {item.icon}
                   </div>

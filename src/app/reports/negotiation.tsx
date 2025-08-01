@@ -1,8 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 
+// Define a proper type for the negotiation margin data
+interface NegotiationMarginItem {
+  id: number;
+  address: string;
+  price: number;
+  dispo_price: number;
+  negotiation_margin: number;
+}
+
 export default function NegotiationMarginTable() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<NegotiationMarginItem[]>([]); // ✅ Typed array
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
@@ -13,7 +22,7 @@ export default function NegotiationMarginTable() {
         setLoading(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/analytics/negotiation-margin`);
         const json = await res.json();
-        setData(json.data || []);
+        setData(json.data || []); // Data will now be correctly typed
       } catch (error) {
         console.error("Error fetching negotiation margin:", error);
       } finally {
@@ -51,7 +60,7 @@ export default function NegotiationMarginTable() {
         <p className="text-slate-300 text-sm mt-1">Real estate investment opportunities with profit margins</p>
       </div>
 
-      {/* Table Container */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
@@ -71,9 +80,9 @@ export default function NegotiationMarginTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
-            {currentRows.map((item, index) => (
+            {currentRows.map((item) => (
               <tr 
-                key={item.id} 
+                key={item.id}
                 className="hover:bg-slate-800/60 transition-all duration-300 group"
               >
                 <td className="px-6 py-5 text-slate-100 font-medium">
