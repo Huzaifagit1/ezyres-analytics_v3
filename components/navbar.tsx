@@ -3,12 +3,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
+import { title } from 'process';
 
 const navSections = [
   {
     items: [
       {    
         name: 'Dashboard',
+        title: 'Main',
         href: '/dashboard',
         icon: (
          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,6 +19,7 @@ const navSections = [
       },
       {
         name: 'Reports',
+        title: 'Analytics',
         href: '/reports',
         icon: (
          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
