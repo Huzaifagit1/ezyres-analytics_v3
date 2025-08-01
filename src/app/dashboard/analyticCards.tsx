@@ -169,17 +169,31 @@ const charts = [
     chartItems = chart.data as AccessBreakdownItem[];
   }
 
-  const chartData = {
-    labels: chartItems.map(chart.getLabel),
-    datasets: [{
-      data: chartItems.map(chart.getValue),
-      backgroundColor: chart.colors.slice(0, chartItems.length),
-      borderWidth: 2,
-      borderColor: '#ffffff',
-      hoverBorderWidth: 3,
-      hoverOffset: 8,
-    }]
-  };
+  let labels: string[] = [];
+let data: number[] = [];
+
+if (chart.id === 'avg-arv') {
+  labels = (chartItems as AvgArvItem[]).map(item => (chart.getLabel as (item: AvgArvItem) => string)(item));
+  data = (chartItems as AvgArvItem[]).map(item => (chart.getValue as (item: AvgArvItem) => number)(item));
+} else if (chart.id === 'success-rate') {
+  labels = (chartItems as SuccessRateItem[]).map(item => (chart.getLabel as (item: SuccessRateItem) => string)(item));
+  data = (chartItems as SuccessRateItem[]).map(item => (chart.getValue as (item: SuccessRateItem) => number)(item));
+} else {
+  labels = (chartItems as AccessBreakdownItem[]).map(item => (chart.getLabel as (item: AccessBreakdownItem) => string)(item));
+  data = (chartItems as AccessBreakdownItem[]).map(item => (chart.getValue as (item: AccessBreakdownItem) => number)(item));
+}
+
+const chartData = {
+  labels,
+  datasets: [{
+    data,
+    backgroundColor: chart.colors.slice(0, chartItems.length),
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    hoverBorderWidth: 3,
+    hoverOffset: 8,
+  }]
+};
 
   const totalValue = chartItems.reduce((sum, item) => sum + chart.getValue(item), 0);
   const hasData = chartItems.length > 0;
