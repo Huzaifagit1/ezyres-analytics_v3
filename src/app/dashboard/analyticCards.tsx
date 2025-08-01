@@ -163,7 +163,7 @@ export default function AnalyticsDonutCharts() {
           ? SuccessRateItem
           : AccessBreakdownItem;
 
-        let chartItems: ChartItem[] = chart.data;
+const chartItems: ChartItem[] = chart.data;
 
         const labels = chartItems.map((item) => {
           if ('avg_arv' in item) return (chart.getLabel as (i: AvgArvItem) => string)(item);
