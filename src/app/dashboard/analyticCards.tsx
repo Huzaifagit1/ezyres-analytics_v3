@@ -63,7 +63,7 @@ export default function AnalyticsDonutCharts() {
   bodyFont: { size: 13, weight: '600' },
   padding: 12,
   callbacks: {
-    label: function (context) {
+    label: function (context: any) {
       const chart = context.chart;
       const dataset = chart.data.datasets[context.datasetIndex];
       const total = dataset.data.reduce((sum, value) => sum + value, 0);
