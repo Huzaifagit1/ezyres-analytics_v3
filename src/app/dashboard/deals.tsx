@@ -190,7 +190,7 @@ export default function DealsChart() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white mb-1">
-              Deal Distribution
+              Deal Distribution  
             </h2>
             <p className="text-slate-300 text-sm">
               Performance across top markets
