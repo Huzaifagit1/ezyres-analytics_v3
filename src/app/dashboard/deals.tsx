@@ -9,6 +9,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
+  ChartOptions,
+  TooltipItem
 } from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -23,8 +26,10 @@ interface ApiResponse {
   data: DealData[];
 }
 
+type BarChartData = ChartData<'bar', number[], string>;
+
 export default function DealsChart() {
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<BarChartData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,8 +75,8 @@ export default function DealsChart() {
         } else {
           setError("Failed to load data");
         }
-      } catch (error) {
-        console.error("Error fetching deals:", error);
+      } catch (err) {
+        console.error("Error fetching deals:", err);
         setError("Unable to fetch data");
       } finally {
         setLoading(false);
@@ -81,7 +86,7 @@ export default function DealsChart() {
     fetchDeals();
   }, []);
 
-  const options: any = {
+  const options: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -105,17 +110,17 @@ export default function DealsChart() {
         displayColors: false,
         titleFont: {
           size: 14,
-          weight: '600',
+
         },
         bodyFont: {
           size: 13,
         },
         padding: 12,
         callbacks: {
-          title: function (context: any) {
+          title: function (context: TooltipItem<'bar'>[]) {
             return context[0].label;
           },
-          label: function (context: any) {
+          label: function (context: TooltipItem<'bar'>) {
             return `${context.parsed.y.toLocaleString()} deals`;
           }
         }
@@ -130,7 +135,6 @@ export default function DealsChart() {
           color: '#64748b',
           font: {
             size: 12,
-            weight: '500',
           },
           maxRotation: 45,
           minRotation: 0,
@@ -143,15 +147,14 @@ export default function DealsChart() {
         beginAtZero: true,
         grid: {
           color: 'rgba(148, 163, 184, 0.1)',
-          drawBorder: false,
         },
         ticks: {
           color: '#64748b',
           font: {
             size: 12,
           },
-          callback: function (value: number) {
-            return value.toLocaleString();
+          callback: function (value: number | string) {
+            return Number(value).toLocaleString();
           }
         },
         border: {
@@ -221,13 +224,13 @@ export default function DealsChart() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-slate-800">
-                  {chartData.labels.length}
+                  {chartData.labels?.length ?? 0}
                 </div>
                 <div className="text-sm text-slate-500 font-medium">Cities</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-slate-800">
-                  {chartData.datasets[0].data.reduce((a: number, b: number) => a + b, 0).toLocaleString()}
+                  {chartData.datasets[0].data.reduce((a, b) => a + b, 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-slate-500 font-medium">Total Deals</div>
               </div>
