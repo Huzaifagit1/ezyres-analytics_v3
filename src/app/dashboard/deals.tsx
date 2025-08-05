@@ -1,6 +1,5 @@
 'use client';
-import {  useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -14,10 +13,20 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+interface DealData {
+  city: string;
+  deal_count: number;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: DealData[];
+}
+
 export default function DealsChart() {
-  const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [chartData, setChartData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -26,17 +35,16 @@ export default function DealsChart() {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/analytics/top-cities`
         );
-        const result = await response.json();
-        
-        if (result.success) {
-          const cities = result.data.map((item) => item.city);
-          const dealCounts = result.data.map((item) => Number(item.deal_count));
+        const result: ApiResponse = await response.json();
 
-          // Generate gradient colors based on data values
+        if (result.success && result.data) {
+          const cities = result.data.map((item: DealData) => item.city);
+          const dealCounts = result.data.map((item: DealData) => Number(item.deal_count));
+
           const maxValue = Math.max(...dealCounts);
-          const colors = dealCounts.map((value, index) => {
-            const intensity = value / maxValue;
-            const hue = 220 - (intensity * 60); // Blue to purple gradient
+          const colors = dealCounts.map((value: number) => {
+            const intensity = maxValue > 0 ? value / maxValue : 0;
+            const hue = 220 - intensity * 60;
             return {
               bg: `hsla(${hue}, 70%, 60%, 0.8)`,
               border: `hsla(${hue}, 70%, 50%, 1)`,
@@ -69,11 +77,11 @@ export default function DealsChart() {
         setLoading(false);
       }
     };
-    
+
     fetchDeals();
   }, []);
 
-  const options = {
+  const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -82,10 +90,10 @@ export default function DealsChart() {
     },
     plugins: {
       legend: {
-        display: false, // Hide legend for cleaner look
+        display: false,
       },
       title: {
-        display: false, // We'll use custom title
+        display: false,
       },
       tooltip: {
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
@@ -104,10 +112,10 @@ export default function DealsChart() {
         },
         padding: 12,
         callbacks: {
-          title: function(context) {
+          title: function (context: any) {
             return context[0].label;
           },
-          label: function(context) {
+          label: function (context: any) {
             return `${context.parsed.y.toLocaleString()} deals`;
           }
         }
@@ -142,7 +150,7 @@ export default function DealsChart() {
           font: {
             size: 12,
           },
-          callback: function(value) {
+          callback: function (value: number) {
             return value.toLocaleString();
           }
         },
@@ -175,7 +183,6 @@ export default function DealsChart() {
 
   return (
     <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Header */}
       <div className="px-8 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
         <div className="flex items-center justify-between">
           <div>
@@ -195,13 +202,12 @@ export default function DealsChart() {
         </div>
       </div>
 
-      {/* Chart Container */}
       <div className="p-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-96">
             <div className="relative">
               <div className="w-16 h-16 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
-              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin animation-delay-150" style={{animationDelay: '0.15s'}}></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin animation-delay-150" style={{ animationDelay: '0.15s' }}></div>
             </div>
             <p className="mt-4 text-slate-600 font-medium">Loading chart data...</p>
             <p className="text-sm text-slate-400">Fetching latest analytics</p>
@@ -211,8 +217,7 @@ export default function DealsChart() {
             <div className="h-96 mb-6">
               <Bar data={chartData} options={options} />
             </div>
-            
-            {/* Stats Footer */}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-slate-800">
@@ -222,7 +227,7 @@ export default function DealsChart() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-slate-800">
-                  {chartData.datasets[0].data.reduce((a, b) => a + b, 0).toLocaleString()}
+                  {chartData.datasets[0].data.reduce((a: number, b: number) => a + b, 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-slate-500 font-medium">Total Deals</div>
               </div>

@@ -161,7 +161,7 @@ export default function AnalyticsDonutCharts() {
           ? AvgArvItem
           : typeof chart extends { id: 'success-rate' }
           ? SuccessRateItem
-          : AccessBreakdownItem;
+          : AccessBreakdownItem;  
 
 const chartItems: ChartItem[] = chart.data;
 
